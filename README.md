@@ -1,68 +1,221 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# React Hooksでライフサイクルメソッドを再現する
 
-## Available Scripts
+最近Reactを勉強しはじめました。基本文法はある程度理解できてきたので、React Hooksを初めて行こうともいます。
 
-In the project directory, you can run:
+## Reactのコンポーネント
 
-### `yarn start`
+Reactのコンポーネントには大きく分けて以下の2つがあります。
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- クラスコンポーネント
+- 関数コンポーネント
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+`React.Component`を継承したクラスコンポーネントではstateという状態を持つことができ、またライフサイクルメソッドを用いてきめ細やかな描写制御を行うことができます。
 
-### `yarn test`
+例）
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```javascript
+import React from 'react';
+class App extends React.Component{
+    constructor(props){
+        super(props);
+        this.state = {message: ''};
+    }
 
-### `yarn build`
+    // DOMにレンダーされた後に実行
+    componentDidMount(){
+        this.setState({
+            message: 'Hello World'
+        });
+    }
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    render(){
+        return(
+            <div>
+                { this.state.message }
+            </div>
+        )
+    }
+}
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+export default App;
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+一方の関数コンポーネントは、最もシンプルな方法でコンポーネントの定義できるものの、状態（state）を管理することができません。また`React.Component`のコンポーネントライフサイクルを利用することができません。
 
-### `yarn eject`
+例）
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```javascript
+const Message = (props) => {
+    return <div>{ props.message }</div>
+}
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## React Hooks
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+そこで、関数コンポーネントの中からでもReactのstateやライフサイクル機能へアクセスできるようにするのがReact Hooksです。
+関数コンポーネントにHooksを導入することで、クラスコンポーネントとほぼ同等の機能を実現することができます。
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+Hooksを導入した詳しい経緯などは、公式ドキュメントを参照してみてください。
 
-## Learn More
+[https://ja.reactjs.org/docs/hooks-intro.html#motivation](https://ja.reactjs.org/docs/hooks-intro.html#motivation)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Hooksは以下のような種類があります。
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+| 関数 | 概要 | 
+| --- | --- |
+| useState | 関数コンポーネント内で状態(state)を扱うための関数 |
+| useEffect |  |
+| useContext |  |
+| useReducer |  |
+| useCallback |  |
+| useMemo |  |
+| useRef |  |
+| useImperativeHandle |  |
+| useLayoutEffect |  |
+| useDebugValue |  |
 
-### Code Splitting
+## useState
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+`useState`は関数コンポーネント内で扱う、状態(state)とそれを更新する関数(setState)を提供します。
+引数と戻り値は以下のようになります。
 
-### Analyzing the Bundle Size
+```javascript
+const [ state, setState ] = useState(initialState);
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+引数の`initialState`は初回レンダー時のstateの値を意味します。
+戻り値のstateにはレンダー時の状態が、setStateにはそのstateを更新するための関数になります。
+実装例は以下のようになります。
 
-### Making a Progressive Web App
+```javascript
+import React, { useState } from 'react';
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+const initialCount = 1;
+const initialValue = 1;
 
-### Advanced Configuration
+const App = () => {
+    const [ count, setCount ] = useState(initialCount);
+    const [ value, setValue ] = useState(initialValue);
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+    const handleOnClick = () =>{
+        setCount(count + 1);
+        setValue((value) => value * 2);
+    }
 
-### Deployment
+    return(
+      <>
+        <div>
+          Count: {count}
+        </div>
+        <div>
+          Value: {value}
+        </div>
+        <div>
+            <button onClick={handleOnClick}>Count</button>
+        </div>
+      </>
+    )
+}
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+export default App;
+```
 
-### `yarn build` fails to minify
+useStateは複数使用することができます。
+useStateは関数のトップレベルで使用する必要があるため、if文やfor文の中では使用することができません。
+useStateは更新関数に値だけでなく関数を渡すことができます。
+また更新関数に現在値と同じstateを渡した場合、更新の回避が起こりReactはレンダーやDOMの更新を実行せず処理を終了します。
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+## useEffect
+
+useEffectはReactのレンダーが終了した後に、引数で受け取った関数を実行するための関数です。Reactにおける副作用とは、
+
+- DOMの更新
+- APIとの通信
+- console.log
+- setState
+- 変数の更新
+
+などの処理のことを指します。
+
+```javascript
+useEffect(() => {});
+```
+
+基本的に関数コンポーネントの中ではレンダリングに関する処理しか書くことができません。そのため、DOMの操作やAPIからデータを取得したりする処理を実行することができません。そこで使用するのが`useEffect`です。`useEffect`の引数の関数は、コンポーネントのレンダリング後に実行されます。
+
+先述した、`useState`と`useEffect`を使用することで、Reactのライフサイクルメソッドである`ComponentDidMount`を再現することができます。
+
+- クラスコンポーネントでのcomponentDidMount
+
+```jsx
+import React from 'react';
+
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {date: new Date()};
+  }
+
+  componentDidMount() {
+    this.timerID = setInterval(
+      () => this.tick(),
+      1000
+    );
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.timerID);
+  }
+
+  tick() {
+    this.setState({
+      date: new Date()
+    });
+  }
+
+  render() {
+    return (
+      <div>
+        <h2>It is {this.state.date.toLocaleTimeString()}.</h2>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+- 関数コンポーネントでの`useState`と`useEffect`
+
+```jsx
+import React, { useState, useEffect } from 'react';
+
+const initialDate = new Date();
+
+const App = () => {
+    const [ date, setDate ] = useState(initialDate);
+
+    useEffect(() => {
+        const timerId = setInterval(() => {
+            setDate(new Date())
+        },1000);
+        return () => clearInterval(timerId);
+    });
+
+    return(
+      <div>
+          <h2>It is { date.toLocaleTimeString()}</h2>
+      </div>
+    )
+}
+
+export default App;
+```
+
+`useState`でstateが使用できるようにし、`useEffect'の関数内で'setDate'を利用してstateの'date'を設定しています。
+また`useEffect`ではクリーンアップ用関数を返すことができます。
+メモリリークを防止するため、コンポーネントがUIから削除される前にクリーンアップ関数が呼び出されます。
+
+## useReducer
+
+`Redux`を触ったことがある人は`reducer`という言葉に反応できるかと思います。
