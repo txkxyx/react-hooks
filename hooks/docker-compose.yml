@@ -1,0 +1,16 @@
+version: '3'
+services:
+  node:
+    build:
+      context: .
+    tty: true
+    environment:
+      - NODE_ENV=production
+      # Hot reload setting for Windows
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+    - ./app:/usr/src/app:delegated
+    command: sh -c "yarn install && yarn start"
+    ports:
+    - "3000:3000"
+    working_dir: /usr/src/app

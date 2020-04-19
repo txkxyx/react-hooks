@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 const initialDate = new Date();
 
-const App = () => {
+
+const FunctionComponentDidMount = () => {
     const [ date, setDate ] = useState(initialDate);
 
     useEffect(() => {
@@ -19,4 +20,4 @@ const App = () => {
     )
 }
 
-export default App;
+export default FunctionComponentDidMount;
